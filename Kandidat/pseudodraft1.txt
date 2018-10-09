@@ -1,0 +1,13 @@
+init M and r
+make two lists
+append M in one r in other
+define constants
+start loop
+define M_d in M_sol/yr
+define c_s in AU/yr
+define r_d in AU/yr
+calculate new M and r
+append to lists
+loop
+done
+

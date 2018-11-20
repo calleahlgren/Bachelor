@@ -10,53 +10,7 @@ from math import *
 import numpy as np
 import matplotlib.pyplot as plt
 
-M_e = 5.972*10**24
-AU = 149597870700
-beta = 1
-zeta = 3/7
-chi = beta + (zeta/2) + (3/2)
-c_s0 = 650
-G = 6.67408*10**-11  
-M_sol = 1.989*10**30
-k_mig = 2*(1.36 + 0.62*beta + 0.43*zeta)
-year = 24*3600*36
-G = 6.67408*10**-11
-
-def omega(r):
-    
-    return (G*M_sol/r**3)**(1/2)
-
-def cS(r):
-    
-    return c_s0*(r/AU)**(-zeta/2)
-
-def scaleHeight(r):
-    
-    return cS(r)/omega(r)
-
-def sigmaG(M_g, alpha, r):
-    
-    r = r*AU
-    M_g= M_g*M_sol/year
-    
-    u_r = -(3/2)*alpha*cS(r)*(scaleHeight(r)/r)
-    
-    return -M_g/(2*pi*r*u_r)
-
-def isoMass(r, alpha): 
-    
-    alpha_v = 0.1*alpha
-
-    r = r*AU
-    
-    a = 25*M_e*((scaleHeight(r)/r)/0.05)**3
-    b = (log(alpha, 10)/log(alpha_v, 10))**4
-    c = (0.34*b + 0.66)
-    d = (1+((chi + 2.5)/6))
-    
-    M_iso = a*c*d
-    
-    return M_iso
+from Helper_Funcs import *
 
 def maxMass(St, xi, alpha, r_0):
     
@@ -72,41 +26,6 @@ def maxMass(St, xi, alpha, r_0):
     
     return M_max
 
-def mKH(M):
-    
-     kappa = 0.005
-     
-     M_kh = ((M_e*10**-5)/year)*(M/(10*M_e))**4*(kappa/0.1)**-1
-     
-     return M_kh 
-    
-def mDisc(r, alpha, M_g, M):
-    
-#    a = (1.5*10**-3*M_e/year)
-#    b = ((scaleHeight(r)/r)/0.05)**-4
-#    c = (M/(10*M_e))**(4/3)
-#    d = (alpha/0.01)**-1
-#    e = (M_g/((10**-8)*M_sol/year))
-#    f = (1/(1+(M/(M_iso_0/1.5))**2))
-#    
-#    M_disc = a*b*c*d*e*f
-    
-    alpha_v = alpha*0.1
-#    
-    a = 0.29/(3*pi)
-    b = (scaleHeight(r)/r)**(-4)
-    c = (M/M_sol)**(4/3)
-    d = M_g/alpha
-    e = (M/M_sol)**2*(scaleHeight(r)/r)**(-5)*alpha_v**(-1)
-    f = 1/(1+0.04*e)
-    
-    M_disc = a*b*c*d*f
-    
-    return M_disc
-    
-def mG(r, alpha, M_g, M):
-    
-    return min(mKH(M), mDisc(r, alpha, M_g, M), M_g)
 
 def analyticalGrowth(r,alpha,St,xi,M_0,r_0):
     
@@ -164,6 +83,7 @@ def growthTrack(St, alpha, xi, M_0, r_0):
         M_vals.append(M)
         r_vals.append(r)
         
+        
     for i in range(len(M_vals)):
         M_vals[i] /= M_e
         
@@ -201,7 +121,7 @@ def growthTrack2(St, alpha, xi, M_0, r_0):
     
         r_delta = -k_mig*(M/M_sol**2)*Sigma_g*r**2*(scaleHeight(r)/r)**(-2)*v_k
         
-        r_delta /= (1+(M/(1.5*isoMass(r/AU, alpha)))**2)
+        r_delta /= (1+(M/(2.3*isoMass(r/AU, alpha)))**2)
     
         M += M_delta*delta_t 
     
@@ -227,10 +147,11 @@ def growthTrack3(St, alpha, xi, M_0, r_0):
     r_vals = [r]
     M_vals = [M]
 
-    M_g= (10**-8)*(1.989*10**30)/year
-    M_p = M_g*xi
-    delta_t = year
-    t=0
+#    M_g= (10**-8)*(1.989*10**30)/year
+#    M_p = M_g*xi
+    delta_t = 5000*year
+    t=year*0.9*10**6
+    
     
 #    M_iso_0 = isoMass(r_0, alpha)
 #    M_max = maxMass(St, xi, alpha, r_0)
@@ -242,41 +163,63 @@ def growthTrack3(St, alpha, xi, M_0, r_0):
 #    M_iso = isoMass(r_iso, alpha)
 #    
     
-    
-    while t < year*2.1*10**6:    
+    """I used this to test out the timestep you mentioned, the next comment 
+    will explain why"""
+#    while t < year*3*10**6 and r>1*AU:    
+    while t < year*3*10**6:
         
         R_H = ((M/(3*M_sol))**(1/3))*r
     
         v_k = (G*M_sol/r)**(1/2)
 
         u_r = -(3/2)*alpha*cS(r)*(scaleHeight(r)/r)
-        v_r = u_r
+#        v_r = u_r
+        delta_v_r = 1/2*(scaleHeight(r)/r)*chi*cS(r)
+        v_r = -2*St*delta_v_r + u_r
+#        v_r = -(2*delta_v_r)/(St + St**-1) + u_r/(1 + St**2)
+        
+        M_g = M_g_Ini*(t/t_s + 1)**-((5/2-gamma)/(2-gamma))
+        
+        M_p = M_g*xi
         
         Sigma_g = -M_g/(2*pi*r*u_r)
     
         Sigma_p = -M_p/(2*pi*r*v_r)
     
-#        if M < M_iso:
+
         if M < isoMass(r/AU, alpha):
             
             M_delta = 2*((St/0.1)**(2/3))*omega(r)*R_H**2*Sigma_p
-        
         else:
             
             M_delta = mG(r, alpha, M_g, M)
-    
+            
+        
         r_delta = -k_mig*(M/M_sol**2)*Sigma_g*r**2*(scaleHeight(r)/r)**(-2)*v_k
         
         r_delta /= (1+(M/(1.5*isoMass(r/AU, alpha)))**2)
-    
+#        r_delta /= (1+(M/(2.3*isoMass(r/AU, alpha)))**2)
+        
+        """I tried implementing this as the timestep but that made the steps
+        far to big and all planets regardless of St, alpha and xi fell in to 
+        the sun"""
+#        delta_t = min(M/M_delta, abs(r/r_delta))
+   
         M += M_delta*delta_t 
     
         r += r_delta*delta_t
         
         t += delta_t
+#        
+        if delta_t > 500*year:
         
+            delta_t -= 100*year
+#        
         M_vals.append(M)
         r_vals.append(r)
+        
+        if r<0.0001*AU:
+            break
         
     for i in range(len(M_vals)):
         M_vals[i] /= M_e
@@ -285,6 +228,5 @@ def growthTrack3(St, alpha, xi, M_0, r_0):
         r_vals[i] /= AU
         
     return r_vals, M_vals
-
 
     

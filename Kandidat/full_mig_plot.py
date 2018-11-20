@@ -11,7 +11,7 @@ from Mig_Functions import *
 r = np.linspace(100, 0.1, 25000)
 
 plt.figure(figsize=(10,4))
-plt.ylim(0.01, 1000)
+plt.ylim(0.01, 3000)
 plt.xlim(0.1, 100)
 iLine1, = plt.loglog(r,(isoMass(r, 0.01)/M_e), '--', label=r'PIM $\rm \alpha_v$ = 0.001')
 iLine2, = plt.loglog(r,(isoMass(r, 0.001)/M_e), '--', label=r'PIM $\rm \alpha_v$ = 0.0001')
@@ -29,6 +29,7 @@ plt.xlabel(r'$r$[AU]')
 plt.legend(fontsize='small', frameon=False, labelspacing=0.2)
 
 firstLegend = plt.legend(handles=[gLine1, gLine2, gLine3, gLine4], loc=3, fontsize='small', frameon=False, labelspacing=0.2)
+#firstLegend = plt.legend(handles=[gLine1], loc=3, fontsize='small', frameon=False, labelspacing=0.2)
 ax = plt.gca().add_artist(firstLegend)
 plt.legend(handles=[iLine1, iLine2], fontsize='small', loc=1, frameon=False, labelspacing=0.2)
-plt.savefig('4Step_Int_growthTracks_fullmig.png', dpi=500)
+plt.savefig('New6_Step_Int_growthTracks_fullmig.png', dpi=500)

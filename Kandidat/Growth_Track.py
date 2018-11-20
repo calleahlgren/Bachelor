@@ -27,7 +27,7 @@ def growthTrack(St, alpha, xi, M_0, r_0):
     yTimeStamps2 = []
     
     'Time step'
-#    delta_t = 1000*year
+    delta_t = 1000*year
     
     'Starting time'
     t=year*0.9*10**6
@@ -57,8 +57,8 @@ def growthTrack(St, alpha, xi, M_0, r_0):
         else:
             
             M_delta = mG(r, alpha, M_g, M)
-            print(t/year)
-            break
+#            print(t/year)
+#            break
                     
         r_delta = -k_mig*(M/(M_sol**2))*Sigma_g*r**2*(scaleHeight(r)/r)**(-2)*v_k        
 #        r_delta /= (1+(M/(1.5*isoMass(r/AU, alpha)))**2)
@@ -71,7 +71,7 @@ def growthTrack(St, alpha, xi, M_0, r_0):
         """I tried implementing this as the timestep but that made the steps
         far to big and all planets starting at 5 and 25 AU fell in to the Sun
         regardless of St, alpha and xi"""
-        delta_t = 0.01*min(M/(M_delta), abs(r/(r_delta)))
+#        delta_t = 0.01*min(M/(M_delta), abs(r/(r_delta)))
    
         M += M_delta*delta_t 
     
